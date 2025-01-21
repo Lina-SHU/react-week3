@@ -4,10 +4,24 @@ import axios from "axios";
 const apiUrl = 'https://ec-course-api.hexschool.io/v2';
 const apiPath = 'react-lina';
 
+const initializeProduct = {
+  title: '',
+  category: '',
+  origin_price: 0,
+  price: 0,
+  unit: '',
+  description: '',
+  content: '',
+  is_enabled: 0,
+  imageUrl: '',
+  imagesUrl: ['']
+};
+
 function App() {
   const [account, setAccount] = useState({ username: '', password: '' });
   const [isAuth, setIsAuth] = useState(false);
   const [products, setProducts] = useState([]);
+  const [tempProduct, setTempProduct] = useState(initializeProduct);
 
   // modal
   const editModal = useRef(null);
@@ -21,8 +35,9 @@ function App() {
     });
   }
   // 登入
-  const login = async () => {
+  const login = async (e) => {
     try {
+      e.preventDefault();
       const res = await axios.post(`${apiUrl}/admin/signin`, account);
       alert(res.data.message);
       document.cookie = `ctoken=${res.data.token}; expires=${new Date(res.data.expired)}; path=/`;
@@ -78,13 +93,51 @@ function App() {
     editModal.current = new Modal(editModalRef.current, { backdrop: 'static' });
   }, [isAuth]);
 
-  const openModal = () => {
+  const openModal = (prd) => {
+    setTempProduct(prd ? { ...prd, is_enabled: prd.is_enabled === 1 ? true : false } : initializeProduct);
     editModal.current.show();
   };
 
   const closeModal = () => {
     editModal.current.hide();
-  }
+  };
+
+  const handleTempProduct = (e) => {
+    const {name, value, checked, type} = e.target;
+    setTempProduct({
+      ...tempProduct,
+      [name]: type === "checkbox" ? checked : value
+    })
+  };
+
+  const addImage = () => {
+    const newImages = [...tempProduct.imagesUrl];
+    newImages.push('');
+    setTempProduct({
+      ...tempProduct,
+      imagesUrl: newImages
+    });
+  };
+
+  const cancelImage = () => {
+    const newImages = [...tempProduct.imagesUrl];
+    newImages.pop();
+    setTempProduct({
+      ...tempProduct,
+      imagesUrl: newImages
+    });
+  };
+
+  const handleImage = (e, index) => {
+    const { value } = e.target;
+    const newImages = [...tempProduct.imagesUrl];
+    newImages[index] = value;
+
+    setTempProduct({
+      ...tempProduct,
+      imagesUrl: newImages
+    });
+  };
 
   // 刪除商品
   const deleteProduct = async(prdId) => {
@@ -95,7 +148,7 @@ function App() {
     } catch (error) {
       alert(error.response.data.message);
     }
-  }
+  };
   return (
     <>
     {
@@ -103,18 +156,18 @@ function App() {
         <div className="container mt-5">
           <div className="row justify-content-center">
               <div className="col-6">
-                <form>
+                <form onSubmit={login}>
                   <h3 className="text-center mb-3 fw-bold">請先登入</h3>
                   <div className="form-floating mb-3">
-                    <input type="email" className="form-control" id="email" placeholder="請輸入電子郵件" value={account.username} name="username" onChange={(e) => handleForm(e)} />
+                    <input type="email" className="form-control" id="email" placeholder="請輸入電子郵件" value={account.username} name="username" onChange={handleForm} />
                     <label htmlFor="email">電子郵件</label>
                   </div>
                   <div className="form-floating mb-4">
-                    <input type="password" className="form-control" id="password" placeholder="請輸入密碼"  value={account.password} name="password" onChange={(e) => handleForm(e)} autoComplete="on" />
+                    <input type="password" className="form-control" id="password" placeholder="請輸入密碼"  value={account.password} name="password" onChange={handleForm} autoComplete="on" />
                     <label htmlFor="floatingPassword">密碼</label>
                   </div>
                   <div className="text-center">
-                    <button type="button" onClick={login} className="btn btn-primary px-4">登入</button>
+                    <button type="submit" className="btn btn-primary px-4">登入</button>
                   </div>
                 </form>
               </div>
@@ -124,6 +177,7 @@ function App() {
         <div className="container mt-5">
             <div className="text-end mb-2">
               <button type="button" className="btn btn-outline-primary btn-sm" onClick={logout}>登出</button>
+              <button type="button" className="btn btn-primary btn-sm ms-1" onClick={() => openModal(null)}>新增商品</button>
             </div>
             <table className="table">
               <thead>
@@ -147,7 +201,7 @@ function App() {
                         <td>{prd.price}</td>
                         <td>{prd.is_enabled ? '啟用' : '未啟用'}</td>
                         <td>
-                          <button type="button" className="btn btn-primary btn-sm me-1" onClick={openModal}>編輯</button>
+                          <button type="button" className="btn btn-primary btn-sm me-1" onClick={() => openModal(prd)}>編輯</button>
                           <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => deleteProduct(prd.id)}>刪除</button>
                         </td>
                       </tr>
@@ -162,15 +216,84 @@ function App() {
               <div className="modal-dialog modal-xl modal-dialog-centered">
                 <div className="modal-content">
                   <div className="modal-header">
-                    <h1 className="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                    <h2 className="modal-title fs-6 fw-bold" id="exampleModalLabel">{ tempProduct.id ? '編輯' : '新增' }商品</h2>
                     <button type="button" className="btn-close" onClick={closeModal} aria-label="Close"></button>
                   </div>
                   <div className="modal-body">
-                    ...
+                      <div className="row g-3">
+                        <div className="col-md-6">
+                          <label htmlFor="title" className="form-label">商品名稱</label>
+                          <input type="text" className="form-control" name="title" id="title" value={tempProduct.title} onChange={(e) => handleTempProduct(e)} />
+                        </div>
+                        <div className="col-md-6">
+                          <label htmlFor="category" className="form-label">商品種類</label>
+                          <input type="text" className="form-control" name="category" id="category" value={tempProduct.category} onChange={(e) => handleTempProduct(e)} />
+                        </div>
+                        <div className="col-md-6">
+                          <label htmlFor="origin_price" className="form-label">原價</label>
+                          <input type="number" className="form-control" name="origin_price" id="origin_price" value={tempProduct.origin_price} onChange={(e) => handleTempProduct(e)} />
+                        </div>
+                        <div className="col-md-6">
+                          <label htmlFor="price" className="form-label">售價</label>
+                          <input type="number" className="form-control" name="price" id="price" value={tempProduct.price} onChange={(e) => handleTempProduct(e)} />
+                        </div>
+                        <div className="col-md-6">
+                          <label htmlFor="unit" className="form-label">單位</label>
+                          <input type="text" className="form-control" id="unit" name="unit" value={tempProduct.unit} onChange={(e) => handleTempProduct(e)} />
+                        </div>
+                        <div className="col-md-6">
+                          <label htmlFor="description" className="form-label">商品描述</label>
+                          <input type="text" className="form-control" id="description" name="description" value={tempProduct.description} onChange={(e) => handleTempProduct(e)} />
+                        </div>
+                        <div className="col-12">
+                          <label htmlFor="content" className="form-label">商品內容</label>
+                          <textarea className="form-control" id="content" name="content" value={tempProduct.content} onChange={(e) => handleTempProduct(e)}></textarea>
+                        </div>
+                        <div className="col-12">
+                          <div className="form-check">
+                            <input className="form-check-input" checked={tempProduct.is_enabled} name="is_enabled" type="checkbox" defaultValue={0} id="is_enabled" onChange={(e) => handleTempProduct(e)} />
+                            <label className="form-check-label" htmlFor="is_enabled">
+                              是否啟用
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-md-4">
+                          <label htmlFor="imageUrl" className="form-label">商品主圖</label>
+                          <input type="text" className="form-control mb-1" name="imageUrl" id="imageUrl" value={tempProduct.imageUrl} onChange={(e) => handleTempProduct(e)} />
+                          <img src={tempProduct.imageUrl} className="img-fluid" alt={tempProduct.title} />
+                        </div>
+                        <div className="col-md-8">
+                          <label htmlFor="imageUrl" className="form-label">商品圖片</label>
+                          <div className="row">
+                            {
+                              tempProduct.imagesUrl?.map((img, index) => {
+                                return (
+                                  <div className="col-md-6 mb-2" key={index}>
+                                    <input type="text" className="form-control mb-1" value={tempProduct.imagesUrl[index]} onChange={(e) => handleImage(e, index)} />
+                                    <img src={img} className="img-fluid" alt="商品主圖" />
+                                  </div>
+                                )
+                              })
+                            }
+                          </div>
+                          <div className="btn-group w-100">
+                            {
+                              tempProduct.imagesUrl.length < 5 && tempProduct.imagesUrl[tempProduct.imagesUrl.length - 1] !== '' && (
+                                <button className="btn btn-outline-primary btn-sm w-100" onClick={addImage}>新增圖片</button>
+                              )
+                            }
+                            {
+                              tempProduct.imagesUrl.length > 1 && (
+                                <button className="btn btn-outline-danger btn-sm w-100" onClick={cancelImage}>取消圖片</button>
+                              )
+                            }
+                          </div>
+                        </div>
+                      </div>
                   </div>
                   <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" onClick={closeModal}>取消</button>
-                    <button type="button" className="btn btn-primary">儲存</button>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={closeModal}>取消</button>
+                    <button type="button" className="btn btn-primary btn-sm">儲存</button>
                   </div>
                 </div>
               </div>
