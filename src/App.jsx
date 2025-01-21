@@ -139,6 +139,28 @@ function App() {
     });
   };
 
+  const editProduct = async () => {
+    try {
+      let apiMethod = 'post';
+      let apieditUrl = `${apiUrl}/api/${apiPath}/admin/product`;
+      if (tempProduct.id) {
+        apiMethod = 'put';
+        apieditUrl = `${apiUrl}/api/${apiPath}/admin/product/${tempProduct.id}`;
+      }
+      const prd = {...tempProduct};
+      prd.origin_price = parseInt(prd.origin_price);
+      prd.price = parseInt(prd.price);
+      prd.is_enabled = prd.is_enabled ? 1 : 0;
+
+      const res = await axios[apiMethod](apieditUrl, { data: prd });
+      alert(res.data.message);
+      closeModal();
+      getProducts();
+    } catch (error) {
+      alert(error.response.data.message);
+    }
+  };
+
   // 刪除商品
   const deleteProduct = async(prdId) => {
     try {
@@ -293,7 +315,7 @@ function App() {
                   </div>
                   <div className="modal-footer">
                     <button type="button" className="btn btn-secondary btn-sm" onClick={closeModal}>取消</button>
-                    <button type="button" className="btn btn-primary btn-sm">儲存</button>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={editProduct}>儲存</button>
                   </div>
                 </div>
               </div>
