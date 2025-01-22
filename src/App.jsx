@@ -292,7 +292,7 @@ function App() {
                                 return (
                                   <div className="col-md-6 mb-2" key={index}>
                                     <input type="text" className="form-control mb-1" value={tempProduct.imagesUrl[index]} onChange={(e) => handleImage(e, index)} />
-                                    <img src={img} className="img-fluid" alt="商品主圖" />
+                                    <img src={img} className="img-fluid" alt={`${tempProduct.title}${index + 1}`} />
                                   </div>
                                 )
                               })
