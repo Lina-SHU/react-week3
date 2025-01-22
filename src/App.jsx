@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "bootstrap";
 import axios from "axios";
-const apiUrl = 'https://ec-course-api.hexschool.io/v2';
-const apiPath = 'react-lina';
 
 const initializeProduct = {
   title: '',
@@ -18,6 +16,7 @@ const initializeProduct = {
 };
 
 function App() {
+  const { VITE_BASE_URL, VITE_API_PATH } = import.meta.env;
   const [account, setAccount] = useState({ username: '', password: '' });
   const [isAuth, setIsAuth] = useState(false);
   const [products, setProducts] = useState([]);
@@ -38,7 +37,7 @@ function App() {
   const login = async (e) => {
     try {
       e.preventDefault();
-      const res = await axios.post(`${apiUrl}/admin/signin`, account);
+      const res = await axios.post(`${VITE_BASE_URL}/admin/signin`, account);
       alert(res.data.message);
       document.cookie = `ctoken=${res.data.token}; expires=${new Date(res.data.expired)}; path=/`;
       axios.defaults.headers.common['Authorization'] = res.data.token;
@@ -58,7 +57,7 @@ function App() {
           "$1",
         );
         axios.defaults.headers.common['Authorization'] = token;
-        await axios.post(`${apiUrl}/api/user/check`);
+        await axios.post(`${VITE_BASE_URL}/api/user/check`);
         setIsAuth(true);
         getProducts();
       } catch (error) {
@@ -70,7 +69,7 @@ function App() {
   // 登出
   const logout = async() => {
     try {
-      await axios.post(`${apiUrl}/logout`);
+      await axios.post(`${VITE_BASE_URL}/logout`);
       setIsAuth(false);
     } catch (error) {
       alert(error.response.data.message);
@@ -80,7 +79,7 @@ function App() {
   // 取得商品
   const getProducts = async () => {
     try {
-      const res = await axios.get(`${apiUrl}/api/${apiPath}/admin/products`);
+      const res = await axios.get(`${VITE_BASE_URL}/api/${VITE_API_PATH}/admin/products`);
       setProducts(res.data.products);
     } catch (error) {
       alert(error.response.data.message);
@@ -142,10 +141,10 @@ function App() {
   const editProduct = async () => {
     try {
       let apiMethod = 'post';
-      let apieditUrl = `${apiUrl}/api/${apiPath}/admin/product`;
+      let apieditUrl = `${VITE_BASE_URL}/api/${VITE_API_PATH}/admin/product`;
       if (tempProduct.id) {
         apiMethod = 'put';
-        apieditUrl = `${apiUrl}/api/${apiPath}/admin/product/${tempProduct.id}`;
+        apieditUrl = `${VITE_BASE_URL}/api/${VITE_API_PATH}/admin/product/${tempProduct.id}`;
       }
       const prd = {...tempProduct};
       prd.origin_price = parseInt(prd.origin_price);
@@ -164,7 +163,7 @@ function App() {
   // 刪除商品
   const deleteProduct = async(prdId) => {
     try {
-      const res = await axios.delete(`${apiUrl}/api/${apiPath}/admin/product/${prdId}`);
+      const res = await axios.delete(`${VITE_BASE_URL}/api/${VITE_API_PATH}/admin/product/${prdId}`);
       alert(res.data.message);
       getProducts();
     } catch (error) {
