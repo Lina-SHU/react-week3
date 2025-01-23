@@ -166,7 +166,8 @@ function App() {
     Swal.fire({
       title: "確認是否刪除此產品？",
       showCancelButton: true,
-      confirmButtonText: "刪除"
+      confirmButtonText: "刪除",
+      cancelButtonText: "取消"
     }).then(async (result) => {
       /* Read more about isConfirmed, isDenied below */
       if (result.isConfirmed) {
