@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "bootstrap";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const initializeProduct = {
   title: '',
@@ -161,14 +162,23 @@ function App() {
   };
 
   // 刪除商品
-  const deleteProduct = async(prdId) => {
-    try {
-      const res = await axios.delete(`${VITE_BASE_URL}/api/${VITE_API_PATH}/admin/product/${prdId}`);
-      alert(res.data.message);
-      getProducts();
-    } catch (error) {
-      alert(error.response.data.message);
-    }
+  const deleteProduct = (prdId) => {
+    Swal.fire({
+      title: "確認是否刪除此產品？",
+      showCancelButton: true,
+      confirmButtonText: "刪除"
+    }).then(async (result) => {
+      /* Read more about isConfirmed, isDenied below */
+      if (result.isConfirmed) {
+        try {
+          const res = await axios.delete(`${VITE_BASE_URL}/api/${VITE_API_PATH}/admin/product/${prdId}`);
+          alert(res.data.message);
+          getProducts();
+        } catch (error) {
+          alert(error.response.data.message);
+        }
+      }
+    });
   };
   return (
     <>
@@ -252,11 +262,11 @@ function App() {
                         </div>
                         <div className="col-md-6">
                           <label htmlFor="origin_price" className="form-label">原價</label>
-                          <input type="number" className="form-control" name="origin_price" id="origin_price" value={tempProduct.origin_price} onChange={(e) => handleTempProduct(e)} />
+                          <input type="number" className="form-control" name="origin_price" min="0" id="origin_price" value={tempProduct.origin_price} onChange={(e) => handleTempProduct(e)} />
                         </div>
                         <div className="col-md-6">
                           <label htmlFor="price" className="form-label">售價</label>
-                          <input type="number" className="form-control" name="price" id="price" value={tempProduct.price} onChange={(e) => handleTempProduct(e)} />
+                          <input type="number" className="form-control" name="price" id="price" min="0" value={tempProduct.price} onChange={(e) => handleTempProduct(e)} />
                         </div>
                         <div className="col-md-6">
                           <label htmlFor="unit" className="form-label">單位</label>
